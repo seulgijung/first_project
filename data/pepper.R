@@ -6,7 +6,7 @@ library(geodata)
 # 1. Working directory & data
 #-------------------------------------------------
 
-setwd("/Users/seulgijung/Documents/슬기중요문서/2025 graduate submission/Columbia/Class/DataStudio2026/first_project")
+setwd("/Users/seulgijung/Documents/슬기중요문서/2025 graduate submission/Columbia/Class/DataStudio2026/first_project/data")
 
 df <- read_csv("pepper.csv", show_col_types = FALSE)
 
