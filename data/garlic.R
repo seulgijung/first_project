@@ -72,3 +72,63 @@ ggplot(map_full) +
 library(svglite)
 ggsave("garlic_map.svg", width = 10, height = 8)
 
+
+# add lat colunn with latitude extracted from geometry column
+map_full <- map_full |>
+  mutate(
+    lat = st_coordinates(st_centroid(geometry))[,2]
+  )
+
+# st_centroid(geometry) : calculate a centroid to each polygon
+# that is a point that represents a group of border dots (shape)
+# because polygon has no such a single latitude & summary statistics needs representative geometry
+
+# st_coordinates( ... )
+# transform geometry objects into matrix (numerical coordinates matrix)
+#       X        Y       > X = lon, Y = lat
+#.    129.02   35.19.    > usually looking like this!
+# that is, calculating spatial object (centroid) into numerical matrix
+
+# [,2]
+# only select the second column (Y) from the matrix
+
+# summary statistics 1
+map_full |>
+  filter(!is.na(score)) |>
+  summarise(
+    min = min(lat),
+    q1 = quantile(lat, 0.25),
+    median = median(lat),
+    mean = mean(lat),
+    q3 = quantile(lat, 0.75),
+    max = max(lat),
+    sd = sd(lat)
+  )
+# summary statistics 2
+summary(map_full$lat[!is.na(map_full$score)])
+
+# create a lat dataframe to ggplot
+lat_summary <- map_full |>
+  filter(!is.na(score)) |>
+  group_by(year) |>
+  summarise(
+    mean = mean(lat, na.rm = TRUE), #na.rm = TRUE : remove(ignore) NA values
+    median = median(lat, na.rm = TRUE)
+  ) |>
+  pivot_longer(
+    cols = c(mean, median),
+    names_to = "stat",
+    values_to = "value"
+  )
+
+# ggplot to see if mean or median rises over time
+ggplot(lat_summary) +
+  aes(x=year, y=value, group=1) + # group=1 means line the dots
+  geom_point(size=2) +
+  geom_line() +
+  facet_wrap(~stat, scale="free_y") + # only y axis free; scale=free means x, y both free
+  theme_minimal()
+
+ggsave("garlic_summarystats.svg", width = 10, height = 8)
+
+
